@@ -13,6 +13,13 @@ const permissions = {
       modificar: true,
       eliminar: true,
     },
+
+    evaluaciones: {
+      leer: true,
+      crear: true,
+      modificar: true,
+      eliminar: true,
+    },
   },
 
   resident: {
@@ -24,6 +31,13 @@ const permissions = {
     },
 
     residentes: {
+      leer: true,
+      crear: false,
+      modificar: false,
+      eliminar: false,
+    },
+
+    evaluaciones: {
       leer: true,
       crear: false,
       modificar: false,

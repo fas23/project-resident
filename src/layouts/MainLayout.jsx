@@ -20,6 +20,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SchoolIcon from "@mui/icons-material/School";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -40,11 +41,27 @@ export default function MainLayout() {
       icon: <DashboardIcon />,
       path: "/dashboard",
     },
+
     {
       text: "Clases",
       icon: <SchoolIcon />,
       path: "/clases",
       resource: "clases",
+      action: "leer",
+    },
+
+    {
+      text: "Evaluaciones",
+      icon: <AssignmentIcon />,
+      path: "/evaluaciones",
+      resource: "evaluaciones",
+      action: "leer",
+    },
+    {
+      text: "Notas",
+      icon: <AssignmentIcon />,
+      path: "/notas",
+      resource: "evaluaciones",
       action: "leer",
     },
   ];
@@ -59,11 +76,13 @@ export default function MainLayout() {
 
   const handleNavigate = (path) => {
     navigate(path);
+
     setMobileOpen(false);
   };
 
   const handleLogout = async () => {
     await logout();
+
     navigate("/login");
   };
 
@@ -75,7 +94,9 @@ export default function MainLayout() {
         flexDirection: "column",
       }}
     >
-      {/* LOGO */}
+      {/* ======================================================
+          LOGO
+      ======================================================= */}
 
       <Toolbar
         sx={{
@@ -113,9 +134,16 @@ export default function MainLayout() {
         }}
       />
 
-      {/* MENU */}
+      {/* ======================================================
+          MENU
+      ======================================================= */}
 
-      <List sx={{ px: 1, py: 2 }}>
+      <List
+        sx={{
+          px: 1,
+          py: 2,
+        }}
+      >
         {visibleMenuItems.map((item) => (
           <ListItem
             key={item.path}
@@ -128,6 +156,7 @@ export default function MainLayout() {
               onClick={() => handleNavigate(item.path)}
               sx={{
                 borderRadius: 0,
+
                 color: "white",
 
                 "&:hover": {
@@ -147,7 +176,9 @@ export default function MainLayout() {
         ))}
       </List>
 
-      {/* LOGOUT */}
+      {/* ======================================================
+          LOGOUT
+      ======================================================= */}
 
       <Box
         sx={{
@@ -158,6 +189,7 @@ export default function MainLayout() {
         <Divider
           sx={{
             mb: 1,
+
             borderColor: "rgba(255,255,255,0.2)",
           }}
         />
@@ -167,6 +199,7 @@ export default function MainLayout() {
             onClick={handleLogout}
             sx={{
               borderRadius: 0,
+
               color: "white",
 
               "&:hover": {
@@ -193,10 +226,13 @@ export default function MainLayout() {
     <Box
       sx={{
         display: "flex",
+
         minHeight: "100vh",
       }}
     >
-      {/* APP BAR */}
+      {/* ======================================================
+          APP BAR
+      ======================================================= */}
 
       <AppBar
         position="fixed"
@@ -232,6 +268,7 @@ export default function MainLayout() {
             onClick={handleDrawerToggle}
             sx={{
               mr: 1,
+
               display: {
                 xs: "inline-flex",
                 sm: "none",
@@ -248,6 +285,7 @@ export default function MainLayout() {
             noWrap
             sx={{
               flexGrow: 1,
+
               fontWeight: 700,
 
               fontSize: {
@@ -259,7 +297,9 @@ export default function MainLayout() {
             Sistema de Residencias
           </Typography>
 
-          {/* USER */}
+          {/* ==================================================
+              USER
+          =================================================== */}
 
           <Avatar
             sx={{
@@ -274,7 +314,9 @@ export default function MainLayout() {
               },
 
               bgcolor: "secondary.main",
+
               color: "primary.dark",
+
               fontWeight: 700,
 
               borderRadius: 0,
@@ -306,6 +348,7 @@ export default function MainLayout() {
               variant="caption"
               sx={{
                 opacity: 0.85,
+
                 textTransform: "capitalize",
               }}
             >
@@ -315,7 +358,9 @@ export default function MainLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* DRAWER */}
+      {/* ======================================================
+          DRAWER
+      ======================================================= */}
 
       <Box
         component="nav"
@@ -346,11 +391,15 @@ export default function MainLayout() {
 
             "& .MuiDrawer-paper": {
               width: drawerWidth,
+
               boxSizing: "border-box",
+
               backgroundColor: "primary.main",
+
               color: "white",
 
               borderRadius: 0,
+
               borderRight: "none",
             },
           }}
@@ -371,11 +420,15 @@ export default function MainLayout() {
 
             "& .MuiDrawer-paper": {
               width: drawerWidth,
+
               boxSizing: "border-box",
+
               backgroundColor: "primary.main",
+
               color: "white",
 
               borderRight: "none",
+
               borderRadius: 0,
             },
           }}
@@ -384,7 +437,9 @@ export default function MainLayout() {
         </Drawer>
       </Box>
 
-      {/* MAIN */}
+      {/* ======================================================
+          MAIN
+      ======================================================= */}
 
       <Box
         component="main"
@@ -417,7 +472,9 @@ export default function MainLayout() {
         <Box
           sx={{
             width: "100%",
+
             maxWidth: 1600,
+
             mx: "auto",
 
             p: {
