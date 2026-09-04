@@ -20,6 +20,13 @@ const permissions = {
       modificar: true,
       eliminar: true,
     },
+
+    guardias: {
+      leer: true,
+      crear: true,
+      modificar: true,
+      eliminar: true,
+    },
   },
 
   resident: {
@@ -38,6 +45,13 @@ const permissions = {
     },
 
     evaluaciones: {
+      leer: true,
+      crear: false,
+      modificar: false,
+      eliminar: false,
+    },
+
+    guardias: {
       leer: true,
       crear: false,
       modificar: false,

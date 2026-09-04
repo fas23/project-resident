@@ -9,6 +9,7 @@ import Notas from "./pages/Notas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PermissionRoute from "./components/PermissionRoute";
 import MainLayout from "./layouts/MainLayout";
+import Guardias from "./pages/Guardias";
 
 export default function App() {
   return (
@@ -69,6 +70,15 @@ export default function App() {
             element={
               <PermissionRoute resource="evaluaciones" action="leer">
                 <Notas />
+              </PermissionRoute>
+            }
+          />
+
+          <Route
+            path="/guardias"
+            element={
+              <PermissionRoute resource="guardias" action="leer">
+                <Guardias />
               </PermissionRoute>
             }
           />

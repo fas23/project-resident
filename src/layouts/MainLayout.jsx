@@ -22,6 +22,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import SchoolIcon from "@mui/icons-material/School";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 import { useAuth } from "../contexts/AuthContext";
 import { hasPermission } from "../services/permissions";
@@ -62,6 +63,13 @@ export default function MainLayout() {
       icon: <AssignmentIcon />,
       path: "/notas",
       resource: "evaluaciones",
+      action: "leer",
+    },
+    {
+      text: "Guardias",
+      icon: <EventAvailableIcon />,
+      path: "/guardias",
+      resource: "guardias",
       action: "leer",
     },
   ];
