@@ -650,13 +650,15 @@ export default function Guardias() {
                     onClick={() => setSelectedDate(key)}
                     sx={{
                       minWidth: 0,
-
-                      height: {
+                      minHeight: {
                         xs: 105,
                         sm: 130,
                         md: 150,
                       },
 
+                      height: "auto",
+
+                      alignSelf: "stretch",
                       p: {
                         xs: 0.5,
                         sm: 1,
@@ -769,10 +771,10 @@ export default function Guardias() {
                       spacing={0.5}
                       mt={0.5}
                       sx={{
-                        overflow: "hidden",
+                        overflow: "visible",
                       }}
                     >
-                      {dayGuardias.slice(0, 3).map((guardia) => (
+                      {dayGuardias.map((guardia) => (
                         <Box
                           key={guardia.id}
                           sx={{
@@ -814,20 +816,6 @@ export default function Guardias() {
                           </Typography>
                         </Box>
                       ))}
-
-                      {dayGuardias.length > 3 && (
-                        <Typography
-                          color="text.secondary"
-                          sx={{
-                            fontSize: {
-                              xs: 8,
-                              sm: 10,
-                            },
-                          }}
-                        >
-                          +{dayGuardias.length - 3} residentes
-                        </Typography>
-                      )}
                     </Stack>
                   </Box>
                 );
