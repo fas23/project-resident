@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PermissionRoute from "./components/PermissionRoute";
 import MainLayout from "./layouts/MainLayout";
 import Guardias from "./pages/Guardias";
+import Salas from "./pages/Salas";
 
 export default function App() {
   return (
@@ -79,6 +80,14 @@ export default function App() {
             element={
               <PermissionRoute resource="guardias" action="leer">
                 <Guardias />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/salas"
+            element={
+              <PermissionRoute resource="salas" action="leer">
+                <Salas />
               </PermissionRoute>
             }
           />
