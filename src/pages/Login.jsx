@@ -52,7 +52,8 @@ export default function Login() {
 
       await login(email.trim(), password);
 
-      navigate("/dashboard");
+      //navigate("/dashboard");
+      navigate("/clases");
     } catch (error) {
       console.error("Error de login:", error);
 

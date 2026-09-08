@@ -38,11 +38,11 @@ export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuItems = [
-    {
+    /* {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/dashboard",
-    },
+    }, */
 
     {
       text: "Clases",

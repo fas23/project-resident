@@ -31,7 +31,7 @@ export default function App() {
         >
           {/* DASHBOARD */}
 
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
 
           {/* CLASES */}
 
@@ -95,7 +95,8 @@ export default function App() {
 
         {/* CUALQUIER RUTA DESCONOCIDA */}
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
+        <Route path="*" element={<Navigate to="/clases" replace />} />
       </Routes>
     </BrowserRouter>
   );
