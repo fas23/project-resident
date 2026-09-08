@@ -13,7 +13,6 @@ import {
   IconButton,
   MenuItem,
   Paper,
-  Select,
   Snackbar,
   Table,
   TableBody,
@@ -63,7 +62,9 @@ export default function Clases() {
 
   const [success, setSuccess] = useState("");
 
-  // Dialog crear / editar
+  // =========================================================
+  // DIALOG CREAR / EDITAR
+  // =========================================================
 
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -73,11 +74,17 @@ export default function Clases() {
 
   const [formulario, setFormulario] = useState(formularioInicial);
 
-  // Dialog eliminar
+  // =========================================================
+  // DIALOG ELIMINAR
+  // =========================================================
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [claseAEliminar, setClaseAEliminar] = useState(null);
+
+  // =========================================================
+  // CARGAR CLASES
+  // =========================================================
 
   const cargarClases = async () => {
     try {
@@ -100,14 +107,23 @@ export default function Clases() {
     cargarClases();
   }, []);
 
+  // =========================================================
+  // CREAR CLASE
+  // =========================================================
+
   const abrirCrear = () => {
     setFormulario(formularioInicial);
 
     setClaseEditando(null);
+
     setModoEdicion(false);
 
     setOpenDialog(true);
   };
+
+  // =========================================================
+  // EDITAR CLASE
+  // =========================================================
 
   const abrirEditar = (clase) => {
     setFormulario({
@@ -117,6 +133,7 @@ export default function Clases() {
     });
 
     setClaseEditando(clase);
+
     setModoEdicion(true);
 
     setOpenDialog(true);
@@ -132,8 +149,13 @@ export default function Clases() {
     setFormulario(formularioInicial);
 
     setClaseEditando(null);
+
     setModoEdicion(false);
   };
+
+  // =========================================================
+  // CAMBIOS DEL FORMULARIO
+  // =========================================================
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -144,24 +166,32 @@ export default function Clases() {
     }));
   };
 
+  // =========================================================
+  // GUARDAR CLASE
+  // =========================================================
+
   const guardarClase = async () => {
     if (!formulario.fecha) {
       setError("Debes seleccionar una fecha.");
+
       return;
     }
 
     if (!formulario.nombre_clase.trim()) {
       setError("Debes ingresar el nombre de la clase.");
+
       return;
     }
 
     if (!["1", "2", "3"].includes(String(formulario.anio_residencia))) {
       setError("Debes seleccionar el año de residencia.");
+
       return;
     }
 
     try {
       setSaving(true);
+
       setError("");
 
       const datos = {
@@ -194,8 +224,13 @@ export default function Clases() {
     }
   };
 
+  // =========================================================
+  // ELIMINAR CLASE
+  // =========================================================
+
   const abrirConfirmacionEliminar = (clase) => {
     setClaseAEliminar(clase);
+
     setOpenDeleteDialog(true);
   };
 
@@ -205,6 +240,7 @@ export default function Clases() {
     }
 
     setOpenDeleteDialog(false);
+
     setClaseAEliminar(null);
   };
 
@@ -215,6 +251,7 @@ export default function Clases() {
 
     try {
       setDeleting(true);
+
       setError("");
 
       await deleteClase(claseAEliminar.id);
@@ -233,6 +270,10 @@ export default function Clases() {
     }
   };
 
+  // =========================================================
+  // FORMATEAR FECHA
+  // =========================================================
+
   const formatearFecha = (fecha) => {
     if (!fecha) {
       return "-";
@@ -245,9 +286,180 @@ export default function Clases() {
     });
   };
 
+  // =========================================================
+  // FORMATEAR DÍA
+  // =========================================================
+
+  const formatearDia = (fecha) => {
+    if (!fecha) {
+      return "-";
+    }
+
+    return new Date(`${fecha}T00:00:00`).toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // =========================================================
+  // FECHA ACTUAL
+  // =========================================================
+
+  const hoy = new Date();
+
+  const fechaHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(
+    2,
+    "0",
+  )}-${String(hoy.getDate()).padStart(2, "0")}`;
+
+  // =========================================================
+  // CLASES VISIBLES
+  // =========================================================
+  //
+  // ADMIN:
+  // Ve todas las clases.
+  //
+  // RESIDENTE:
+  // Ve solamente las clases de hoy y futuras.
+  //
+  // Las clases pasadas siguen existiendo en Supabase.
+  // =========================================================
+
+  const clasesVisibles = esAdmin
+    ? clases
+    : clases.filter((clase) => clase.fecha >= fechaHoy);
+
+  // =========================================================
+  // AGRUPAR CLASES POR FECHA
+  // =========================================================
+
+  const clasesPorFecha = clasesVisibles.reduce((acc, clase) => {
+    const fecha = clase.fecha;
+
+    if (!acc[fecha]) {
+      acc[fecha] = {
+        fecha,
+
+        primerAnio: null,
+
+        segundoAnio: null,
+
+        tercerAnio: null,
+      };
+    }
+
+    if (Number(clase.anio_residencia) === 1) {
+      acc[fecha].primerAnio = clase;
+    }
+
+    if (Number(clase.anio_residencia) === 2) {
+      acc[fecha].segundoAnio = clase;
+    }
+
+    if (Number(clase.anio_residencia) === 3) {
+      acc[fecha].tercerAnio = clase;
+    }
+
+    return acc;
+  }, {});
+
+  // =========================================================
+  // ORDENAR FILAS POR FECHA
+  // =========================================================
+
+  const filas = Object.values(clasesPorFecha).sort(
+    (a, b) => new Date(a.fecha) - new Date(b.fecha),
+  );
+
+  // =========================================================
+  // MOSTRAR CLASE DENTRO DE LA CELDA
+  // =========================================================
+
+  const renderizarClase = (clase) => {
+    if (!clase) {
+      return <Typography color="text.disabled">-</Typography>;
+    }
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+
+          alignItems: "center",
+
+          justifyContent: "space-between",
+
+          gap: 1,
+
+          minHeight: 40,
+        }}
+      >
+        {/* NOMBRE DE LA CLASE */}
+
+        <Typography
+          sx={{
+            fontWeight: 500,
+          }}
+        >
+          {clase.nombre_clase}
+        </Typography>
+
+        {/* ACCIONES DEL ADMIN */}
+
+        {esAdmin && (
+          <Box
+            sx={{
+              display: "flex",
+
+              flexShrink: 0,
+
+              gap: 0.25,
+            }}
+          >
+            {/* MODIFICAR */}
+
+            {hasPermission(role, "clases", "modificar") && (
+              <Tooltip title="Modificar">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => abrirEditar(clase)}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {/* ELIMINAR */}
+
+            {hasPermission(role, "clases", "eliminar") && (
+              <Tooltip title="Eliminar">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => abrirConfirmacionEliminar(clase)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
     <Box>
-      {/* CABECERA */}
+      {/* =====================================================
+          CABECERA
+      ===================================================== */}
 
       <Box
         sx={{
@@ -275,16 +487,24 @@ export default function Clases() {
             variant="h4"
             sx={{
               fontWeight: 700,
+
               color: "primary.dark",
             }}
           >
             Clases
           </Typography>
 
-          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography
+            color="text.secondary"
+            sx={{
+              mt: 0.5,
+            }}
+          >
             Gestión de clases de residencia
           </Typography>
         </Box>
+
+        {/* BOTÓN NUEVA CLASE */}
 
         {hasPermission(role, "clases", "crear") && (
           <Button
@@ -303,40 +523,113 @@ export default function Clases() {
         )}
       </Box>
 
-      {/* TABLA */}
+      {/* =====================================================
+          TABLA
+      ===================================================== */}
 
       <TableContainer
         component={Paper}
         sx={{
           borderRadius: 0,
+
           border: "1px solid",
+
           borderColor: "divider",
+
           overflowX: "auto",
         }}
       >
         <Table
           sx={{
-            minWidth: esAdmin ? 750 : 550,
+            minWidth: esAdmin ? 950 : 650,
           }}
         >
+          {/* =================================================
+              ENCABEZADO
+          ================================================= */}
+
           <TableHead>
             <TableRow>
-              <TableCell>Fecha</TableCell>
+              <TableCell
+                sx={{
+                  width: esAdmin ? 180 : 150,
 
-              <TableCell>Clase</TableCell>
+                  fontWeight: 700,
+                }}
+              >
+                Fecha
+              </TableCell>
 
-              <TableCell>Año de residencia</TableCell>
+              {esAdmin ? (
+                <>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    Clase
+                  </TableCell>
 
-              {/* SOLO ADMIN */}
+                  <TableCell
+                    sx={{
+                      width: 180,
 
-              {esAdmin && <TableCell align="right">Acciones</TableCell>}
+                      fontWeight: 700,
+                    }}
+                  >
+                    Año de Residencia
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      width: 120,
+
+                      fontWeight: 700,
+                    }}
+                  >
+                    Acciones
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    1° Año
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    2° Año
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    3° Año
+                  </TableCell>
+                </>
+              )}
             </TableRow>
           </TableHead>
 
+          {/* =================================================
+              CUERPO
+          ================================================= */}
+
           <TableBody>
+            {/* CARGANDO */}
+
             {loading && (
               <TableRow>
-                <TableCell colSpan={esAdmin ? 4 : 3} align="center">
+                <TableCell colSpan={4} align="center">
                   <Box
                     sx={{
                       py: 4,
@@ -348,9 +641,11 @@ export default function Clases() {
               </TableRow>
             )}
 
-            {!loading && clases.length === 0 && (
+            {/* SIN CLASES */}
+
+            {!loading && clasesVisibles.length === 0 && (
               <TableRow>
-                <TableCell colSpan={esAdmin ? 4 : 3} align="center">
+                <TableCell colSpan={4} align="center">
                   <Typography
                     color="text.secondary"
                     sx={{
@@ -363,73 +658,134 @@ export default function Clases() {
               </TableRow>
             )}
 
+            {/* CLASES */}
+
             {!loading &&
-              clases.map((clase) => (
-                <TableRow key={clase.id} hover>
-                  <TableCell>{formatearFecha(clase.fecha)}</TableCell>
+              (esAdmin
+                ? clasesVisibles
+                    .slice()
+                    .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+                    .map((clase) => (
+                      <TableRow key={clase.id} hover>
+                        {/* FECHA */}
 
-                  <TableCell>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                      }}
-                    >
-                      {clase.nombre_clase}
-                    </Typography>
-                  </TableCell>
+                        <TableCell>
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
 
-                  <TableCell>{clase.anio_residencia}° año</TableCell>
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {formatearDia(clase.fecha)}
+                          </Typography>
+                        </TableCell>
 
-                  {/*
+                        {/* CLASE */}
 
-                      ESTA COLUMNA
-                      NO EXISTE PARA
-                      RESIDENT
+                        <TableCell>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                            }}
+                          >
+                            {clase.nombre_clase}
+                          </Typography>
+                        </TableCell>
 
-                    */}
+                        {/* AÑO DE RESIDENCIA */}
 
-                  {esAdmin && (
-                    <TableCell align="right">
-                      <Box
-                        sx={{
-                          display: "flex",
+                        <TableCell>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                            }}
+                          >
+                            {clase.anio_residencia}° año
+                          </Typography>
+                        </TableCell>
 
-                          justifyContent: "flex-end",
+                        {/* ACCIONES */}
 
-                          gap: 0.5,
-                        }}
-                      >
-                        {hasPermission(role, "clases", "modificar") && (
-                          <Tooltip title="Modificar">
-                            <IconButton
-                              color="primary"
-                              onClick={() => abrirEditar(clase)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                        <TableCell>
+                          <Box
+                            sx={{
+                              display: "flex",
 
-                        {hasPermission(role, "clases", "eliminar") && (
-                          <Tooltip title="Eliminar">
-                            <IconButton
-                              color="error"
-                              onClick={() => abrirConfirmacionEliminar(clase)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                              alignItems: "center",
+
+                              gap: 0.25,
+                            }}
+                          >
+                            {/* MODIFICAR */}
+
+                            {hasPermission(role, "clases", "modificar") && (
+                              <Tooltip title="Modificar">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => abrirEditar(clase)}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+
+                            {/* ELIMINAR */}
+
+                            {hasPermission(role, "clases", "eliminar") && (
+                              <Tooltip title="Eliminar">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() =>
+                                    abrirConfirmacionEliminar(clase)
+                                  }
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                : filas.map((fila) => (
+                    <TableRow key={fila.fecha} hover>
+                      {/* FECHA */}
+
+                      <TableCell>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {formatearDia(fila.fecha)}
+                        </Typography>
+                      </TableCell>
+
+                      {/* 1° AÑO */}
+
+                      <TableCell>{renderizarClase(fila.primerAnio)}</TableCell>
+
+                      {/* 2° AÑO */}
+
+                      <TableCell>{renderizarClase(fila.segundoAnio)}</TableCell>
+
+                      {/* 3° AÑO */}
+
+                      <TableCell>{renderizarClase(fila.tercerAnio)}</TableCell>
+                    </TableRow>
+                  )))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* DIALOG CREAR / EDITAR */}
+      {/* =====================================================
+          DIALOG CREAR / EDITAR
+      ===================================================== */}
 
       <Dialog open={openDialog} onClose={cerrarDialog} fullWidth maxWidth="sm">
         <DialogTitle
@@ -452,6 +808,8 @@ export default function Clases() {
               gap: 2,
             }}
           >
+            {/* FECHA */}
+
             <TextField
               label="Fecha"
               name="fecha"
@@ -465,6 +823,8 @@ export default function Clases() {
               disabled={saving}
             />
 
+            {/* NOMBRE */}
+
             <TextField
               label="Nombre de la clase"
               name="nombre_clase"
@@ -473,6 +833,8 @@ export default function Clases() {
               fullWidth
               disabled={saving}
             />
+
+            {/* AÑO DE RESIDENCIA */}
 
             <TextField
               select
@@ -495,6 +857,7 @@ export default function Clases() {
         <DialogActions
           sx={{
             px: 3,
+
             pb: 2,
           }}
         >
@@ -521,7 +884,9 @@ export default function Clases() {
         </DialogActions>
       </Dialog>
 
-      {/* DIALOG CONFIRMAR ELIMINACIÓN */}
+      {/* =====================================================
+          DIALOG CONFIRMAR ELIMINACIÓN
+      ===================================================== */}
 
       <Dialog
         open={openDeleteDialog}
@@ -546,9 +911,13 @@ export default function Clases() {
             <Box
               sx={{
                 mt: 2,
+
                 p: 2,
+
                 backgroundColor: "#FBE6C2",
+
                 borderLeft: "4px solid",
+
                 borderColor: "primary.main",
               }}
             >
@@ -571,6 +940,7 @@ export default function Clases() {
         <DialogActions
           sx={{
             px: 3,
+
             pb: 2,
           }}
         >
@@ -602,7 +972,9 @@ export default function Clases() {
         </DialogActions>
       </Dialog>
 
-      {/* MENSAJES */}
+      {/* =====================================================
+          MENSAJE DE ERROR
+      ===================================================== */}
 
       <Snackbar
         open={Boolean(error)}
@@ -613,6 +985,10 @@ export default function Clases() {
           {error}
         </Alert>
       </Snackbar>
+
+      {/* =====================================================
+          MENSAJE DE ÉXITO
+      ===================================================== */}
 
       <Snackbar
         open={Boolean(success)}
