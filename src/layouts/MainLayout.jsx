@@ -23,6 +23,7 @@ import SchoolIcon from "@mui/icons-material/School";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 
 import { useAuth } from "../contexts/AuthContext";
 import { hasPermission } from "../services/permissions";
@@ -37,11 +38,11 @@ export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuItems = [
-    {
+    /* {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/dashboard",
-    },
+    }, */
 
     {
       text: "Clases",
@@ -58,6 +59,7 @@ export default function MainLayout() {
       resource: "evaluaciones",
       action: "leer",
     },
+
     {
       text: "Notas",
       icon: <AssignmentIcon />,
@@ -65,11 +67,20 @@ export default function MainLayout() {
       resource: "evaluaciones",
       action: "leer",
     },
+
     {
       text: "Guardias",
       icon: <EventAvailableIcon />,
       path: "/guardias",
       resource: "guardias",
+      action: "leer",
+    },
+
+    {
+      text: "Salas",
+      icon: <LocalHospitalIcon />,
+      path: "/salas",
+      resource: "salas",
       action: "leer",
     },
   ];
@@ -197,7 +208,6 @@ export default function MainLayout() {
         <Divider
           sx={{
             mb: 1,
-
             borderColor: "rgba(255,255,255,0.2)",
           }}
         />
@@ -234,7 +244,6 @@ export default function MainLayout() {
     <Box
       sx={{
         display: "flex",
-
         minHeight: "100vh",
       }}
     >

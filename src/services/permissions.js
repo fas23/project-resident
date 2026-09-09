@@ -27,6 +27,12 @@ const permissions = {
       modificar: true,
       eliminar: true,
     },
+    salas: {
+      leer: true,
+      crear: true,
+      modificar: true,
+      eliminar: true,
+    },
   },
 
   resident: {
@@ -52,6 +58,12 @@ const permissions = {
     },
 
     guardias: {
+      leer: true,
+      crear: false,
+      modificar: false,
+      eliminar: false,
+    },
+    salas: {
       leer: true,
       crear: false,
       modificar: false,

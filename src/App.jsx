@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PermissionRoute from "./components/PermissionRoute";
 import MainLayout from "./layouts/MainLayout";
 import Guardias from "./pages/Guardias";
+import Salas from "./pages/Salas";
 
 export default function App() {
   return (
@@ -30,7 +31,7 @@ export default function App() {
         >
           {/* DASHBOARD */}
 
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
 
           {/* CLASES */}
 
@@ -82,11 +83,20 @@ export default function App() {
               </PermissionRoute>
             }
           />
+          <Route
+            path="/salas"
+            element={
+              <PermissionRoute resource="salas" action="leer">
+                <Salas />
+              </PermissionRoute>
+            }
+          />
         </Route>
 
         {/* CUALQUIER RUTA DESCONOCIDA */}
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
+        <Route path="*" element={<Navigate to="/clases" replace />} />
       </Routes>
     </BrowserRouter>
   );
