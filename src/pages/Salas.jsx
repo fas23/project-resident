@@ -676,7 +676,7 @@ export default function Salas() {
 
                     <TableCell>{residente.residente}</TableCell>
 
-                    <TableCell>{residente.anio_residencia}° Año</TableCell>
+                    <TableCell>{residente.anio_residencia}° año</TableCell>
 
                     <TableCell>{residente.observaciones || "-"}</TableCell>
 
@@ -752,15 +752,6 @@ export default function Salas() {
                 fullWidth
                 disabled={saving}
               />
-
-              {/* <TextField
-                label="Año de residencia"
-                name="anio_residencia"
-                value={formularioResidente.anio_residencia}
-                onChange={handleResidenteChange}
-                fullWidth
-                disabled={saving}
-              /> */}
 
               <TextField
                 select
