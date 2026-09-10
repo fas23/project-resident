@@ -22,6 +22,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  MenuItem,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -50,8 +51,8 @@ const formularioSalaInicial = {
 };
 
 const formularioResidenteInicial = {
-  apellido: "",
-  nombre: "",
+  residente: "",
+  anio_residencia: "",
   camas_desde: "",
   camas_hasta: "",
   observaciones: "",
@@ -355,8 +356,11 @@ export default function Salas() {
 
   const abrirEditarResidente = (residente) => {
     setFormularioResidente({
-      apellido: residente.apellido || "",
-      nombre: residente.nombre || "",
+      residente: residente.residente || "",
+      anio_residencia:
+        residente.anio_residencia != null
+          ? Number(residente.anio_residencia)
+          : "",
       camas_desde:
         residente.camas_desde != null ? String(residente.camas_desde) : "",
       camas_hasta:
@@ -403,13 +407,16 @@ export default function Salas() {
   // =====================================================
 
   const guardarResidente = async () => {
-    if (!formularioResidente.apellido.trim()) {
-      setError("Debes ingresar el apellido.");
+    if (!formularioResidente.residente.trim()) {
+      setError("Debes ingresar el residente.");
       return;
     }
 
-    if (!formularioResidente.nombre.trim()) {
-      setError("Debes ingresar el nombre.");
+    if (
+      formularioResidente.anio_residencia === "" ||
+      formularioResidente.anio_residencia == null
+    ) {
+      setError("Debes seleccionar el año de residencia.");
       return;
     }
 
@@ -449,8 +456,11 @@ export default function Salas() {
 
       const datos = {
         sala_id: salaSeleccionada.id,
-        apellido: formularioResidente.apellido.trim(),
-        nombre: formularioResidente.nombre.trim(),
+        residente: formularioResidente.residente.trim(),
+        anio_residencia:
+          formularioResidente.anio_residencia === ""
+            ? null
+            : Number(formularioResidente.anio_residencia),
         camas_desde: formularioResidente.camas_desde,
         camas_hasta: formularioResidente.camas_hasta,
         observaciones: formularioResidente.observaciones.trim(),
@@ -622,8 +632,8 @@ export default function Salas() {
             <TableHead>
               <TableRow>
                 <TableCell>Camas</TableCell>
-                <TableCell>Apellido</TableCell>
-                <TableCell>Nombre</TableCell>
+                <TableCell>Residente</TableCell>
+                <TableCell>Año de residencia</TableCell>
                 <TableCell>Observaciones</TableCell>
 
                 {esAdmin && <TableCell align="right">Acciones</TableCell>}
@@ -664,9 +674,9 @@ export default function Salas() {
                       </Typography>
                     </TableCell>
 
-                    <TableCell>{residente.apellido}</TableCell>
+                    <TableCell>{residente.residente}</TableCell>
 
-                    <TableCell>{residente.nombre}</TableCell>
+                    <TableCell>{residente.anio_residencia}° Año</TableCell>
 
                     <TableCell>{residente.observaciones || "-"}</TableCell>
 
@@ -735,22 +745,36 @@ export default function Salas() {
               }}
             >
               <TextField
-                label="Apellido"
-                name="apellido"
-                value={formularioResidente.apellido}
+                label="Residente"
+                name="residente"
+                value={formularioResidente.residente}
                 onChange={handleResidenteChange}
                 fullWidth
                 disabled={saving}
               />
 
-              <TextField
-                label="Nombre"
-                name="nombre"
-                value={formularioResidente.nombre}
+              {/* <TextField
+                label="Año de residencia"
+                name="anio_residencia"
+                value={formularioResidente.anio_residencia}
                 onChange={handleResidenteChange}
                 fullWidth
                 disabled={saving}
-              />
+              /> */}
+
+              <TextField
+                select
+                label="Año de residencia"
+                name="anio_residencia"
+                value={formularioResidente.anio_residencia}
+                onChange={handleResidenteChange}
+                fullWidth
+                disabled={saving}
+              >
+                <MenuItem value={1}>1° año</MenuItem>
+                <MenuItem value={2}>2° año</MenuItem>
+                <MenuItem value={3}>3° año</MenuItem>
+              </TextField>
 
               <Box
                 sx={{
@@ -848,7 +872,11 @@ export default function Salas() {
                 }}
               >
                 <Typography sx={{ fontWeight: 700 }}>
-                  {residenteAEliminar.apellido}, {residenteAEliminar.nombre}
+                  {residenteAEliminar.residente}
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary">
+                  Año de residencia: {residenteAEliminar.anio_residencia}
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary">

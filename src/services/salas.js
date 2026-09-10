@@ -77,8 +77,7 @@ export async function getSalaResidentes(salaId) {
     .from("sala_residentes")
     .select("*")
     .eq("sala_id", salaId)
-    .order("camas_desde", { ascending: true })
-    .order("apellido", { ascending: true });
+    .order("camas_desde", { ascending: true });
 
   if (error) {
     console.error("Error obteniendo residentes de la sala:", error);
@@ -99,9 +98,10 @@ export async function createSalaResidente(datos) {
     .insert({
       sala_id: datos.sala_id,
 
-      apellido: datos.apellido,
+      residente: datos.residente,
 
-      nombre: datos.nombre,
+      anio_residencia:
+        datos.anio_residencia === "" ? null : Number(datos.anio_residencia),
 
       camas_desde: datos.camas_desde === "" ? null : Number(datos.camas_desde),
 
@@ -130,9 +130,9 @@ export async function updateSalaResidente(id, datos) {
     .update({
       sala_id: datos.sala_id,
 
-      apellido: datos.apellido,
+      residente: datos.residente,
 
-      nombre: datos.nombre,
+      anio_residencia: datos.anio_residencia,
 
       camas_desde: datos.camas_desde === "" ? null : Number(datos.camas_desde),
 
