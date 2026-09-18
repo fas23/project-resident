@@ -11,6 +11,7 @@ import PermissionRoute from "./components/PermissionRoute";
 import MainLayout from "./layouts/MainLayout";
 import Guardias from "./pages/Guardias";
 import Salas from "./pages/Salas";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         {/* LOGIN */}
 
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* RUTAS PROTEGIDAS */}
 
