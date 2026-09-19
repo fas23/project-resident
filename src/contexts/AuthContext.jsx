@@ -137,12 +137,10 @@ export function AuthProvider({ children }) {
         if (!mounted) {
           return;
         }
-        console.log("Auth event:", _event);
         setSession(newSession);
         setUser(newSession?.user || null);
 
         if (_event === "PASSWORD_RECOVERY") {
-          console.log("Sesión de recuperación de contraseña detectada");
           return;
         }
 
