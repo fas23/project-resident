@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -18,8 +18,59 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    let recoveryDetected = false;
+
+    const checkRecovery = async () => {
+      // Escuchamos el evento PASSWORD_RECOVERY
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          recoveryDetected = true;
+          setRecoveryMode(true);
+          setCheckingSession(false);
+        }
+      });
+
+      // Verificamos si existe una sesión
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) {
+        setError("No se pudo verificar la sesión.");
+        setCheckingSession(false);
+        return;
+      }
+
+      // Esperamos un momento para que Supabase procese
+      // el evento PASSWORD_RECOVERY del enlace.
+      setTimeout(() => {
+        if (!recoveryDetected) {
+          if (!data.session) {
+            setError("El enlace de recuperación no es válido o ya expiró.");
+          } else {
+            setError(
+              "Esta página solo puede utilizarse mediante un enlace de recuperación de contraseña.",
+            );
+          }
+
+          setCheckingSession(false);
+        }
+      }, 500);
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+
+    checkRecovery();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,6 +116,23 @@ export default function ResetPassword() {
     }, 2000);
   };
 
+  if (checkingSession) {
+    return (
+      <Container maxWidth="sm">
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography>Verificando enlace de recuperación...</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -107,38 +175,40 @@ export default function ResetPassword() {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Nueva contraseña"
-              type="password"
-              value={password}
-              autoFocus
-              onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              disabled={loading || !!success}
-            />
+          {recoveryMode && !success && (
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Nueva contraseña"
+                type="password"
+                value={password}
+                autoFocus
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                disabled={loading}
+              />
 
-            <TextField
-              fullWidth
-              label="Confirmar contraseña"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              margin="normal"
-              disabled={loading || !!success}
-            />
+              <TextField
+                fullWidth
+                label="Confirmar contraseña"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                margin="normal"
+                disabled={loading}
+              />
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3 }}
-              disabled={loading || !!success}
-            >
-              {loading ? "Actualizando..." : "Cambiar contraseña"}
-            </Button>
-          </Box>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3 }}
+                disabled={loading}
+              >
+                {loading ? "Actualizando..." : "Cambiar contraseña"}
+              </Button>
+            </Box>
+          )}
         </Paper>
       </Box>
     </Container>
