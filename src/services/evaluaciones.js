@@ -3,17 +3,7 @@ import { supabase } from "../lib/supabase";
 export async function getEvaluaciones() {
   const { data, error } = await supabase
     .from("evaluaciones")
-    .select(
-      `
-      *,
-      clases (
-        id,
-        nombre_clase,
-        fecha,
-        anio_residencia
-      )
-    `,
-    )
+    .select("*")
     .order("fecha", { ascending: false });
 
   if (error) {

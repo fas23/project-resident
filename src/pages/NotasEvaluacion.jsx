@@ -31,7 +31,7 @@ import { getNotasDeEvaluacion, guardarNota } from "../services/notas";
 
 const formularioInicial = {
   apellido: "",
-  nombre: "",
+  //nombre: "",
   year_of_residency: "",
   nota: "",
 };
@@ -148,10 +148,10 @@ export default function NotasEvaluacion() {
       return;
     }
 
-    if (!formulario.nombre.trim()) {
+    /* if (!formulario.nombre.trim()) {
       setError("Debes ingresar el nombre.");
       return;
-    }
+    } */
 
     if (!["1", "2", "3"].includes(String(formulario.year_of_residency))) {
       setError("Debes seleccionar el año de residencia.");
@@ -190,7 +190,7 @@ export default function NotasEvaluacion() {
 
         apellido: formulario.apellido.trim(),
 
-        nombre: formulario.nombre.trim(),
+        //nombre: formulario.nombre.trim(),
 
         year_of_residency: Number(formulario.year_of_residency),
 
@@ -233,7 +233,7 @@ export default function NotasEvaluacion() {
     setFormulario({
       apellido: nota.apellido || "",
 
-      nombre: nota.nombre || "",
+      //nombre: nota.nombre || "",
 
       year_of_residency: nota.year_of_residency || "",
 
@@ -297,11 +297,11 @@ export default function NotasEvaluacion() {
                 mt: 0.5,
               }}
             >
-              {evaluacion?.clases?.nombre_clase || "-"} ·{" "}
+              {/* {evaluacion?.clases?.nombre_clase || "-"} ·{" "}
               {evaluacion?.clases?.anio_residencia
                 ? `${evaluacion.clases.anio_residencia}° año`
-                : "-"}{" "}
-              · {formatearFecha(evaluacion?.fecha)}
+                : "-"}{" "} */}
+              {formatearFecha(evaluacion?.fecha)}
             </Typography>
           </>
         )}
@@ -344,16 +344,15 @@ export default function NotasEvaluacion() {
 
               gridTemplateColumns: {
                 xs: "1fr",
-                sm: "1fr 1fr 1fr 1fr",
+                sm: "1fr 1fr 1fr",
               },
 
               gap: 2,
             }}
           >
             {/* APELLIDO */}
-
             <TextField
-              label="Apellido"
+              label="Residente"
               name="apellido"
               value={formulario.apellido}
               onChange={handleChange}
@@ -363,14 +362,14 @@ export default function NotasEvaluacion() {
 
             {/* NOMBRE */}
 
-            <TextField
+            {/* <TextField
               label="Nombre"
               name="nombre"
               value={formulario.nombre}
               onChange={handleChange}
               fullWidth
               disabled={saving}
-            />
+            /> */}
 
             {/* AÑO */}
 
@@ -494,20 +493,20 @@ export default function NotasEvaluacion() {
           >
             <TableHead>
               <TableRow>
-                <TableCell
+                {/*   <TableCell
                   sx={{
                     fontWeight: 700,
                   }}
                 >
                   Apellido
-                </TableCell>
+                </TableCell> */}
 
                 <TableCell
                   sx={{
                     fontWeight: 700,
                   }}
                 >
-                  Nombre
+                  Residente
                 </TableCell>
 
                 <TableCell
@@ -563,7 +562,7 @@ export default function NotasEvaluacion() {
                 <TableRow key={nota.id} hover>
                   <TableCell>{nota.apellido}</TableCell>
 
-                  <TableCell>{nota.nombre}</TableCell>
+                  {/* <TableCell>{nota.nombre}</TableCell> */}
 
                   <TableCell>{nota.year_of_residency}° año</TableCell>
 

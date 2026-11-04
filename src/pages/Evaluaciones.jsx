@@ -33,7 +33,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import { useAuth } from "../contexts/AuthContext";
 import { hasPermission } from "../services/permissions";
 
-import { getClases } from "../services/clases";
+//import { getClases } from "../services/clases";
 
 import {
   getEvaluaciones,
@@ -42,7 +42,7 @@ import {
 } from "../services/evaluaciones";
 
 const formularioInicial = {
-  clase_id: "",
+  //clase_id: "",
   nombre: "",
   fecha: "",
 };
@@ -55,7 +55,7 @@ export default function Evaluaciones() {
   const esAdmin = role === "admin";
 
   const [evaluaciones, setEvaluaciones] = useState([]);
-  const [clases, setClases] = useState([]);
+  //const [clases, setClases] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,13 +81,14 @@ export default function Evaluaciones() {
       setLoading(true);
       setError("");
 
-      const [evaluacionesData, clasesData] = await Promise.all([
+      /* const [evaluacionesData, clasesData] = await Promise.all([
         getEvaluaciones(),
         getClases(),
-      ]);
+      ]); */
+      const evaluacionesData = await getEvaluaciones();
 
       setEvaluaciones(evaluacionesData || []);
-      setClases(clasesData || []);
+      //setClases(clasesData || []);
     } catch (error) {
       console.error("Error cargando evaluaciones:", error);
 
@@ -125,10 +126,10 @@ export default function Evaluaciones() {
   };
 
   const guardarEvaluacion = async () => {
-    if (!formulario.clase_id) {
+    /* if (!formulario.clase_id) {
       setError("Debes seleccionar una clase.");
       return;
-    }
+    } */
 
     if (!formulario.nombre.trim()) {
       setError("Debes ingresar el nombre de la evaluación.");
@@ -145,7 +146,7 @@ export default function Evaluaciones() {
       setError("");
 
       await createEvaluacion({
-        clase_id: Number(formulario.clase_id),
+        //clase_id: Number(formulario.clase_id),
         nombre: formulario.nombre.trim(),
         fecha: formulario.fecha,
       });
@@ -215,14 +216,14 @@ export default function Evaluaciones() {
     });
   };
 
-  const obtenerClase = (evaluacion) => {
+  /*   const obtenerClase = (evaluacion) => {
     if (evaluacion.clases) {
       return evaluacion.clases;
     }
 
     return clases.find((clase) => clase.id === evaluacion.clase_id);
   };
-
+ */
   const irACargarNotas = (evaluacion) => {
     navigate(`/evaluaciones/${evaluacion.id}/notas`);
   };
@@ -307,9 +308,9 @@ export default function Evaluaciones() {
 
               <TableCell>Evaluación</TableCell>
 
-              <TableCell>Clase</TableCell>
+              {/* <TableCell>Clase</TableCell>
 
-              <TableCell>Año</TableCell>
+              <TableCell>Año</TableCell> */}
 
               <TableCell align="right">Acciones</TableCell>
             </TableRow>
@@ -343,7 +344,7 @@ export default function Evaluaciones() {
 
             {!loading &&
               evaluaciones.map((evaluacion) => {
-                const clase = obtenerClase(evaluacion);
+                /* const clase = obtenerClase(evaluacion); */
 
                 return (
                   <TableRow key={evaluacion.id} hover>
@@ -359,13 +360,13 @@ export default function Evaluaciones() {
                       </Typography>
                     </TableCell>
 
-                    <TableCell>{clase?.nombre_clase || "-"}</TableCell>
+                    {/* <TableCell>{clase?.nombre_clase || "-"}</TableCell>
 
                     <TableCell>
                       {clase?.anio_residencia
                         ? `${clase.anio_residencia}° año`
                         : "-"}
-                    </TableCell>
+                    </TableCell> */}
 
                     <TableCell align="right">
                       <Box
@@ -440,7 +441,7 @@ export default function Evaluaciones() {
               gap: 2,
             }}
           >
-            <TextField
+            {/* <TextField
               select
               label="Clase"
               name="clase_id"
@@ -455,7 +456,7 @@ export default function Evaluaciones() {
                   {formatearFecha(clase.fecha)}
                 </MenuItem>
               ))}
-            </TextField>
+            </TextField> */}
 
             <TextField
               label="Nombre de la evaluación"

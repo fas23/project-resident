@@ -268,7 +268,7 @@ export default function Notas() {
             label="Buscar residente"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Apellido o nombre"
+            placeholder="Residente"
             fullWidth
           />
 
@@ -330,16 +330,16 @@ export default function Notas() {
                   fontWeight: 700,
                 }}
               >
-                Apellido
+                Residente
               </TableCell>
 
-              <TableCell
+              {/* <TableCell
                 sx={{
                   fontWeight: 700,
                 }}
               >
                 Nombre
-              </TableCell>
+              </TableCell> */}
 
               <TableCell
                 sx={{
@@ -416,7 +416,7 @@ export default function Notas() {
                   <TableRow key={nota.id} hover>
                     <TableCell>{nota.apellido}</TableCell>
 
-                    <TableCell>{nota.nombre}</TableCell>
+                    {/* <TableCell>{nota.nombre}</TableCell> */}
 
                     <TableCell>
                       {nota.year_of_residency
@@ -433,11 +433,11 @@ export default function Notas() {
                         {evaluacion?.nombre || "-"}
                       </Typography>
 
-                      {evaluacion?.clases?.nombre_clase && (
+                      {/* {evaluacion?.clases?.nombre_clase && (
                         <Typography variant="caption" color="text.secondary">
                           {evaluacion.clases.nombre_clase}
                         </Typography>
-                      )}
+                      )} */}
                     </TableCell>
 
                     <TableCell>{formatearFecha(evaluacion?.fecha)}</TableCell>
