@@ -27,13 +27,17 @@ import { useAuth } from "../contexts/AuthContext";
 
 import { getEvaluaciones } from "../services/evaluaciones";
 
-import { getNotasDeEvaluacion, guardarNota } from "../services/notas";
+import {
+  getNotasDeEvaluacion,
+  guardarNota,
+  eliminarNota,
+} from "../services/notas";
 
 const formularioInicial = {
   apellido: "",
   //nombre: "",
   year_of_residency: "",
-  nota: "",
+  //nota: "",
 };
 
 export default function NotasEvaluacion() {
@@ -60,6 +64,13 @@ export default function NotasEvaluacion() {
   const [error, setError] = useState("");
 
   const [success, setSuccess] = useState("");
+
+  //add
+  const [notasFormulario, setNotasFormulario] = useState([]);
+
+  const [notasOriginales, setNotasOriginales] = useState([]);
+
+  const [residenteEditando, setResidenteEditando] = useState(null);
 
   // ============================================================
   // CARGAR EVALUACIÓN Y NOTAS
@@ -136,22 +147,50 @@ export default function NotasEvaluacion() {
     setFormulario(formularioInicial);
 
     setNotaEditando(null);
+
+    setResidenteEditando(null);
+
+    setNotasFormulario([]);
+
+    setNotasOriginales([]);
   };
+
+  const iniciarNuevaCarga = () => {
+    setFormulario(formularioInicial);
+
+    setNotasFormulario([
+      {
+        id: null,
+        nota: "",
+      },
+    ]);
+
+    setNotasOriginales([]);
+
+    setNotaEditando(null);
+
+    setResidenteEditando(null);
+  };
+  /* const limpiarFormulario = () => {
+    setFormulario(formularioInicial);
+
+    setNotaEditando(null);
+  }; */
 
   // ============================================================
   // GUARDAR NOTA
   // ============================================================
 
-  const guardar = async () => {
+  /* const guardar = async () => {
     if (!formulario.apellido.trim()) {
       setError("Debes ingresar el apellido.");
       return;
     }
 
-    /* if (!formulario.nombre.trim()) {
-      setError("Debes ingresar el nombre.");
-      return;
-    } */
+    //if (!formulario.nombre.trim()) {
+      //setError("Debes ingresar el nombre.");
+      //return;
+    //} 
 
     if (!["1", "2", "3"].includes(String(formulario.year_of_residency))) {
       setError("Debes seleccionar el año de residencia.");
@@ -221,13 +260,128 @@ export default function NotasEvaluacion() {
     } finally {
       setSaving(false);
     }
+  }; */
+
+  const guardar = async () => {
+    if (!formulario.apellido.trim()) {
+      setError("Debes ingresar el apellido.");
+      return;
+    }
+
+    if (!["1", "2", "3"].includes(String(formulario.year_of_residency))) {
+      setError("Debes seleccionar el año de residencia.");
+      return;
+    }
+
+    if (notasFormulario.length === 0) {
+      setError("Debes ingresar al menos una nota.");
+      return;
+    }
+
+    const notasNormalizadas = notasFormulario.map((item) => ({
+      ...item,
+      nota: Number(String(item.nota).replace(",", ".")),
+    }));
+
+    const notasInvalidas = notasNormalizadas.some(
+      (item) =>
+        item.nota === "" ||
+        !Number.isFinite(item.nota) ||
+        item.nota < 0 ||
+        item.nota > 10,
+    );
+
+    if (notasInvalidas) {
+      setError("Todas las notas deben ser números entre 0 y 10.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      // Eliminar las notas que fueron quitadas del formulario
+
+      const idsActuales = notasFormulario
+        .filter((item) => item.id)
+        .map((item) => item.id);
+
+      const idsOriginales = notasOriginales
+        .filter((item) => item.id)
+        .map((item) => item.id);
+
+      const idsEliminar = idsOriginales.filter(
+        (id) => !idsActuales.includes(id),
+      );
+
+      for (const id of idsEliminar) {
+        await eliminarNota(id);
+      }
+
+      // Insertar o actualizar las notas
+
+      for (const item of notasNormalizadas) {
+        await guardarNota({
+          ...(item.id ? { id: item.id } : {}),
+
+          evaluacion_id: Number(evaluacionId),
+
+          apellido: formulario.apellido.trim(),
+
+          year_of_residency: Number(formulario.year_of_residency),
+
+          nota: item.nota,
+        });
+      }
+
+      setSuccess(
+        residenteEditando
+          ? "Notas del residente actualizadas correctamente."
+          : "Notas cargadas correctamente.",
+      );
+
+      limpiarFormulario();
+
+      await cargarDatos();
+    } catch (error) {
+      console.error("Error guardando notas:", error);
+
+      setError(error.message || "No se pudieron guardar las notas.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ============================================================
   // EDITAR NOTA
   // ============================================================
 
-  const editarNota = (nota) => {
+  const editarNota = (grupo) => {
+    setResidenteEditando(grupo);
+
+    setNotaEditando(grupo);
+
+    setFormulario({
+      apellido: grupo.apellido,
+      year_of_residency: String(grupo.year_of_residency),
+    });
+
+    const notasArray = grupo.notas.map((nota) => ({
+      id: nota.id,
+      nota: String(nota.nota),
+    }));
+
+    setNotasFormulario(notasArray);
+
+    setNotasOriginales(notasArray);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /* const editarNota = (nota) => {
     setNotaEditando(nota);
 
     setFormulario({
@@ -244,6 +398,28 @@ export default function NotasEvaluacion() {
       top: 0,
       behavior: "smooth",
     });
+  }; */
+  // ============================================================
+  // AGREGAR, QUITAR Y MODIFICAR NOTAS
+  // ============================================================
+  const agregarNota = () => {
+    setNotasFormulario((prev) => [
+      ...prev,
+      {
+        id: null,
+        nota: "",
+      },
+    ]);
+  };
+
+  const quitarNota = (index) => {
+    setNotasFormulario((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const cambiarNota = (index, value) => {
+    setNotasFormulario((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, nota: value } : item)),
+    );
   };
 
   // ============================================================
@@ -253,6 +429,27 @@ export default function NotasEvaluacion() {
   const volver = () => {
     navigate("/evaluaciones");
   };
+
+  // ============================================================
+  // AGRUPAR NOTAS POR RESIDENTE
+  // ============================================================
+  const gruposResidentes = Object.values(
+    notas.reduce((grupos, nota) => {
+      const clave = `${nota.apellido.trim().toLowerCase()}-${nota.year_of_residency}`;
+
+      if (!grupos[clave]) {
+        grupos[clave] = {
+          apellido: nota.apellido,
+          year_of_residency: nota.year_of_residency,
+          notas: [],
+        };
+      }
+
+      grupos[clave].notas.push(nota);
+
+      return grupos;
+    }, {}),
+  );
 
   // ============================================================
   // RENDER
@@ -335,8 +532,21 @@ export default function NotasEvaluacion() {
               mb: 2,
             }}
           >
-            {notaEditando ? "Modificar nota" : "Cargar nota"}
+            {residenteEditando
+              ? "Modificar notas del residente"
+              : "Cargar notas"}
+            {/* {notaEditando ? "Modificar nota" : "Cargar nota"} */}
           </Typography>
+
+          {residenteEditando && (
+            <Button
+              variant="outlined"
+              onClick={iniciarNuevaCarga}
+              sx={{ mb: 2 }}
+            >
+              Cargar otro residente
+            </Button>
+          )}
 
           <Box
             sx={{
@@ -344,7 +554,7 @@ export default function NotasEvaluacion() {
 
               gridTemplateColumns: {
                 xs: "1fr",
-                sm: "1fr 1fr 1fr",
+                sm: "1fr 1fr",
               },
 
               gap: 2,
@@ -389,9 +599,72 @@ export default function NotasEvaluacion() {
               <MenuItem value={3}>3° año</MenuItem>
             </TextField>
 
-            {/* NOTA */}
+            {/* ARRAY DE NOTAS */}
 
-            <TextField
+            <Box sx={{ gridColumn: "1 / -1" }}>
+              <Typography fontWeight={600} sx={{ mb: 1 }}>
+                Calificaciones
+              </Typography>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(4, 1fr)",
+                  },
+                  gap: 2,
+                }}
+              >
+                {notasFormulario.map((item, index) => (
+                  <Box
+                    key={item.id ?? `nueva-${index}`}
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      alignItems: "center",
+                    }}
+                  >
+                    <TextField
+                      label={`Nota ${index + 1}`}
+                      value={item.nota}
+                      onChange={(event) => {
+                        const value = event.target.value
+                          .replace(",", ".")
+                          .replace(/[^0-9.]/g, "");
+
+                        cambiarNota(index, value);
+                      }}
+                      fullWidth
+                      disabled={saving}
+                      placeholder="0 - 10"
+                      inputProps={{
+                        inputMode: "decimal",
+                      }}
+                    />
+
+                    <Button
+                      color="error"
+                      onClick={() => quitarNota(index)}
+                      disabled={saving || notasFormulario.length === 1}
+                    >
+                      Quitar
+                    </Button>
+                  </Box>
+                ))}
+              </Box>
+
+              <Button
+                variant="outlined"
+                onClick={agregarNota}
+                disabled={saving}
+                sx={{ mt: 2 }}
+              >
+                + Agregar otra nota
+              </Button>
+            </Box>
+
+            {/* <TextField
               label="Nota"
               name="nota"
               value={formulario.nota}
@@ -413,7 +686,7 @@ export default function NotasEvaluacion() {
                 min: 0,
                 max: 10,
               }}
-            />
+            /> */}
           </Box>
 
           {/* BOTONES */}
@@ -459,11 +732,16 @@ export default function NotasEvaluacion() {
               onClick={guardar}
               disabled={saving}
             >
-              {saving
+              {/* {saving
                 ? "Guardando..."
                 : notaEditando
                   ? "Modificar nota"
-                  : "Guardar nota"}
+                  : "Guardar nota"} */}
+              {saving
+                ? "Guardando..."
+                : residenteEditando
+                  ? "Actualizar notas"
+                  : "Guardar notas"}
             </Button>
           </Box>
         </Paper>
@@ -537,11 +815,75 @@ export default function NotasEvaluacion() {
                 )}
               </TableRow>
             </TableHead>
-
             <TableBody>
-              {/* SIN NOTAS */}
+              {gruposResidentes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    <Typography color="text.secondary" sx={{ py: 4 }}>
+                      Todavía no hay notas cargadas para esta evaluación.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
 
-              {notas.length === 0 && (
+              {gruposResidentes.map((grupo) => {
+                const promedio =
+                  grupo.notas.reduce(
+                    (total, item) => total + Number(item.nota),
+                    0,
+                  ) / grupo.notas.length;
+
+                return (
+                  <TableRow
+                    key={`${grupo.apellido}-${grupo.year_of_residency}`}
+                    hover
+                  >
+                    <TableCell>{grupo.apellido}</TableCell>
+
+                    <TableCell>{grupo.year_of_residency}° año</TableCell>
+
+                    <TableCell>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                        {grupo.notas.map((item) => (
+                          <Typography
+                            key={item.id}
+                            component="span"
+                            sx={{
+                              bgcolor: "action.hover",
+                              borderRadius: 1,
+                              px: 1,
+                              py: 0.5,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {Number(item.nota).toFixed(2)}
+                          </Typography>
+                        ))}
+                      </Box>
+
+                      <Typography variant="caption" color="text.secondary">
+                        Promedio: {promedio.toFixed(2)}
+                      </Typography>
+                    </TableCell>
+
+                    {esAdmin && (
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          startIcon={<EditIcon />}
+                          onClick={() => editarNota(grupo)}
+                        >
+                          Editar notas
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+            {/*             <TableBody>
+              {/* SIN NOTAS */}
+            {/* {notas.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={esAdmin ? 5 : 4} align="center">
                     <Typography
@@ -554,17 +896,14 @@ export default function NotasEvaluacion() {
                     </Typography>
                   </TableCell>
                 </TableRow>
-              )}
-
-              {/* NOTAS */}
-
-              {notas.map((nota) => (
+              )} */}
+            {/* NOTAS */}
+            {/* {notas.map((nota) => (
                 <TableRow key={nota.id} hover>
                   <TableCell>{nota.apellido}</TableCell>
-
-                  {/* <TableCell>{nota.nombre}</TableCell> */}
-
-                  <TableCell>{nota.year_of_residency}° año</TableCell>
+ */}
+            {/* <TableCell>{nota.nombre}</TableCell> */}
+            {/*                   <TableCell>{nota.year_of_residency}° año</TableCell>
 
                   <TableCell>
                     <Typography
@@ -577,9 +916,9 @@ export default function NotasEvaluacion() {
                     </Typography>
                   </TableCell>
 
-                  {/* EDITAR */}
-
-                  {esAdmin && (
+ */}
+            {/* EDITAR */}
+            {/*                   {esAdmin && (
                     <TableCell align="right">
                       <Button
                         size="small"
@@ -592,7 +931,7 @@ export default function NotasEvaluacion() {
                   )}
                 </TableRow>
               ))}
-            </TableBody>
+             </TableBody> */}
           </Table>
         </TableContainer>
       )}

@@ -51,3 +51,11 @@ export async function getTodasLasNotas() {
 
   return data;
 }
+
+export async function eliminarNota(id) {
+  const { error } = await supabase.from("notas").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}

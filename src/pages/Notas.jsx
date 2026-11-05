@@ -125,6 +125,38 @@ export default function Notas() {
   }, [notas, filtroAnio, filtroEvaluacion, busqueda]);
 
   // ============================================================
+  // AGRUPAR POR RESIDENTE Y EVALUACIÓN
+  // ============================================================
+
+  const gruposResidentes = useMemo(() => {
+    const grupos = new Map();
+
+    notasFiltradas.forEach((nota) => {
+      const clave = `${nota.apellido?.trim().toLowerCase()}-${nota.year_of_residency}-${nota.evaluacion_id}`;
+
+      if (!grupos.has(clave)) {
+        grupos.set(clave, {
+          apellido: nota.apellido,
+          year_of_residency: nota.year_of_residency,
+          evaluacion: nota.evaluaciones,
+          notas: [],
+        });
+      }
+
+      grupos.get(clave).notas.push(nota);
+    });
+
+    return Array.from(grupos.values()).sort((a, b) => {
+      const apellido = a.apellido.localeCompare(b.apellido, "es");
+
+      if (apellido !== 0) return apellido;
+
+      return (
+        new Date(a.evaluacion?.fecha || 0) - new Date(b.evaluacion?.fecha || 0)
+      );
+    });
+  }, [notasFiltradas]);
+  // ============================================================
   // FECHA
   // ============================================================
 
@@ -310,75 +342,31 @@ export default function Notas() {
         component={Paper}
         sx={{
           borderRadius: 0,
-
           border: "1px solid",
-
           borderColor: "divider",
-
           overflowX: "auto",
         }}
       >
-        <Table
-          sx={{
-            minWidth: 850,
-          }}
-        >
+        <Table sx={{ minWidth: 1000 }}>
           <TableHead>
             <TableRow>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Residente
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Residente</TableCell>
 
-              {/* <TableCell
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Nombre
-              </TableCell> */}
+              <TableCell sx={{ fontWeight: 700 }}>Año</TableCell>
 
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Año
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Evaluación</TableCell>
 
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Evaluación
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Fecha</TableCell>
 
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Fecha
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Notas</TableCell>
 
-              <TableCell
-                align="center"
-                sx={{
-                  fontWeight: 700,
-                }}
-              >
-                Nota
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Promedio
               </TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {/* LOADING */}
-
             {loading && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
@@ -389,68 +377,78 @@ export default function Notas() {
               </TableRow>
             )}
 
-            {/* SIN RESULTADOS */}
-
-            {!loading && notasFiltradas.length === 0 && (
+            {!loading && gruposResidentes.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  <Typography
-                    color="text.secondary"
-                    sx={{
-                      py: 4,
-                    }}
-                  >
+                  <Typography color="text.secondary" sx={{ py: 4 }}>
                     No hay notas que coincidan con los filtros.
                   </Typography>
                 </TableCell>
               </TableRow>
             )}
 
-            {/* RESULTADOS */}
-
             {!loading &&
-              notasFiltradas.map((nota) => {
-                const evaluacion = nota.evaluaciones;
+              gruposResidentes.map((grupo, index) => {
+                const promedio =
+                  grupo.notas.reduce(
+                    (total, item) => total + Number(item.nota),
+                    0,
+                  ) / grupo.notas.length;
 
                 return (
-                  <TableRow key={nota.id} hover>
-                    <TableCell>{nota.apellido}</TableCell>
-
-                    {/* <TableCell>{nota.nombre}</TableCell> */}
+                  <TableRow
+                    key={`${grupo.apellido}-${grupo.year_of_residency}-${grupo.notas[0]?.evaluacion_id}-${index}`}
+                    hover
+                  >
+                    <TableCell>
+                      <Typography fontWeight={600}>{grupo.apellido}</Typography>
+                    </TableCell>
 
                     <TableCell>
-                      {nota.year_of_residency
-                        ? `${nota.year_of_residency}° año`
+                      {grupo.year_of_residency
+                        ? `${grupo.year_of_residency}° año`
                         : "-"}
                     </TableCell>
 
-                    <TableCell>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        {evaluacion?.nombre || "-"}
-                      </Typography>
+                    <TableCell>{grupo.evaluacion?.nombre || "-"}</TableCell>
 
-                      {/* {evaluacion?.clases?.nombre_clase && (
-                        <Typography variant="caption" color="text.secondary">
-                          {evaluacion.clases.nombre_clase}
-                        </Typography>
-                      )} */}
+                    <TableCell>
+                      {formatearFecha(grupo.evaluacion?.fecha)}
                     </TableCell>
 
-                    <TableCell>{formatearFecha(evaluacion?.fecha)}</TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
+                      >
+                        {grupo.notas.map((item) => (
+                          <Typography
+                            key={item.id}
+                            component="span"
+                            sx={{
+                              bgcolor: "action.hover",
+                              borderRadius: 1,
+                              px: 1,
+                              py: 0.5,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {Number(item.nota).toFixed(2)}
+                          </Typography>
+                        ))}
+                      </Box>
+                    </TableCell>
 
                     <TableCell align="center">
                       <Typography
-                        sx={{
-                          fontWeight: 700,
-                          color: "primary.dark",
-                          fontSize: "1.05rem",
-                        }}
+                        fontWeight={700}
+                        color="primary.dark"
+                        fontSize="1.05rem"
                       >
-                        {Number(nota.nota).toFixed(2)}
+                        {promedio.toFixed(2)}
                       </Typography>
                     </TableCell>
                   </TableRow>
