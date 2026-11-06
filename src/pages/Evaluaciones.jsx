@@ -27,6 +27,7 @@ import {
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 
@@ -38,6 +39,7 @@ import { hasPermission } from "../services/permissions";
 import {
   getEvaluaciones,
   createEvaluacion,
+  updateEvaluacion,
   deleteEvaluacion,
 } from "../services/evaluaciones";
 
@@ -75,16 +77,13 @@ export default function Evaluaciones() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [evaluacionAEliminar, setEvaluacionAEliminar] = useState(null);
+  const [evaluacionEditando, setEvaluacionEditando] = useState(null);
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
       setError("");
 
-      /* const [evaluacionesData, clasesData] = await Promise.all([
-        getEvaluaciones(),
-        getClases(),
-      ]); */
       const evaluacionesData = await getEvaluaciones();
 
       setEvaluaciones(evaluacionesData || []);
@@ -103,7 +102,19 @@ export default function Evaluaciones() {
   }, []);
 
   const abrirCrear = () => {
+    setEvaluacionEditando(null);
     setFormulario(formularioInicial);
+    setOpenDialog(true);
+  };
+
+  const abrirEditar = (evaluacion) => {
+    setEvaluacionEditando(evaluacion);
+
+    setFormulario({
+      nombre: evaluacion.nombre || "",
+      fecha: evaluacion.fecha || "",
+    });
+
     setOpenDialog(true);
   };
 
@@ -114,6 +125,7 @@ export default function Evaluaciones() {
 
     setOpenDialog(false);
     setFormulario(formularioInicial);
+    setEvaluacionEditando(null);
   };
 
   const handleChange = (event) => {
@@ -126,11 +138,6 @@ export default function Evaluaciones() {
   };
 
   const guardarEvaluacion = async () => {
-    /* if (!formulario.clase_id) {
-      setError("Debes seleccionar una clase.");
-      return;
-    } */
-
     if (!formulario.nombre.trim()) {
       setError("Debes ingresar el nombre de la evaluación.");
       return;
@@ -141,25 +148,44 @@ export default function Evaluaciones() {
       return;
     }
 
+    const datos = {
+      nombre: formulario.nombre.trim(),
+      fecha: formulario.fecha,
+    };
+
     try {
       setSaving(true);
       setError("");
 
-      await createEvaluacion({
-        //clase_id: Number(formulario.clase_id),
-        nombre: formulario.nombre.trim(),
-        fecha: formulario.fecha,
-      });
+      if (evaluacionEditando) {
+        // ACTUALIZAR EVALUACIÓN
 
-      setSuccess("Evaluación creada correctamente.");
+        await updateEvaluacion(evaluacionEditando.id, datos);
 
-      cerrarDialog();
+        setEvaluaciones((prev) =>
+          prev.map((item) =>
+            item.id === evaluacionEditando.id ? { ...item, ...datos } : item,
+          ),
+        );
 
-      await cargarDatos();
+        setSuccess("Evaluación modificada correctamente.");
+      } else {
+        // CREAR EVALUACIÓN
+
+        const nuevaEvaluacion = await createEvaluacion(datos);
+
+        setEvaluaciones((prev) => [...prev, nuevaEvaluacion]);
+
+        setSuccess("Evaluación creada correctamente.");
+      }
+
+      setOpenDialog(false);
+      setFormulario(formularioInicial);
+      setEvaluacionEditando(null);
     } catch (error) {
-      console.error("Error creando evaluación:", error);
+      console.error("Error guardando evaluación:", error);
 
-      setError(error.message || "No se pudo crear la evaluación.");
+      setError(error.message || "No se pudo guardar la evaluación.");
     } finally {
       setSaving(false);
     }
@@ -216,14 +242,6 @@ export default function Evaluaciones() {
     });
   };
 
-  /*   const obtenerClase = (evaluacion) => {
-    if (evaluacion.clases) {
-      return evaluacion.clases;
-    }
-
-    return clases.find((clase) => clase.id === evaluacion.clase_id);
-  };
- */
   const irACargarNotas = (evaluacion) => {
     navigate(`/evaluaciones/${evaluacion.id}/notas`);
   };
@@ -305,13 +323,7 @@ export default function Evaluaciones() {
           <TableHead>
             <TableRow>
               <TableCell>Fecha</TableCell>
-
               <TableCell>Evaluación</TableCell>
-
-              {/* <TableCell>Clase</TableCell>
-
-              <TableCell>Año</TableCell> */}
-
               <TableCell align="right">Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -344,8 +356,6 @@ export default function Evaluaciones() {
 
             {!loading &&
               evaluaciones.map((evaluacion) => {
-                /* const clase = obtenerClase(evaluacion); */
-
                 return (
                   <TableRow key={evaluacion.id} hover>
                     <TableCell>{formatearFecha(evaluacion.fecha)}</TableCell>
@@ -359,14 +369,6 @@ export default function Evaluaciones() {
                         {evaluacion.nombre}
                       </Typography>
                     </TableCell>
-
-                    {/* <TableCell>{clase?.nombre_clase || "-"}</TableCell>
-
-                    <TableCell>
-                      {clase?.anio_residencia
-                        ? `${clase.anio_residencia}° año`
-                        : "-"}
-                    </TableCell> */}
 
                     <TableCell align="right">
                       <Box
@@ -389,6 +391,20 @@ export default function Evaluaciones() {
                               onClick={() => irACargarNotas(evaluacion)}
                             >
                               <AssignmentIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {/* ================================
+                    EDITAR
+                ================================= */}
+
+                        {hasPermission(role, "evaluaciones", "modificar") && (
+                          <Tooltip title="Editar evaluación">
+                            <IconButton
+                              color="primary"
+                              onClick={() => abrirEditar(evaluacion)}
+                            >
+                              <EditIcon />
                             </IconButton>
                           </Tooltip>
                         )}
@@ -421,12 +437,8 @@ export default function Evaluaciones() {
       {/* DIALOG CREAR */}
 
       <Dialog open={openDialog} onClose={cerrarDialog} fullWidth maxWidth="sm">
-        <DialogTitle
-          sx={{
-            fontWeight: 700,
-          }}
-        >
-          Nueva evaluación
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          {evaluacionEditando ? "Modificar evaluación" : "Nueva evaluación"}
         </DialogTitle>
 
         <DialogContent>
@@ -441,23 +453,6 @@ export default function Evaluaciones() {
               gap: 2,
             }}
           >
-            {/* <TextField
-              select
-              label="Clase"
-              name="clase_id"
-              value={formulario.clase_id}
-              onChange={handleChange}
-              fullWidth
-              disabled={saving}
-            >
-              {clases.map((clase) => (
-                <MenuItem key={clase.id} value={clase.id}>
-                  {clase.nombre_clase} · {clase.anio_residencia}° año ·{" "}
-                  {formatearFecha(clase.fecha)}
-                </MenuItem>
-              ))}
-            </TextField> */}
-
             <TextField
               label="Nombre de la evaluación"
               name="nombre"
@@ -500,15 +495,11 @@ export default function Evaluaciones() {
           >
             {saving ? (
               <>
-                <CircularProgress
-                  size={20}
-                  color="inherit"
-                  sx={{
-                    mr: 1,
-                  }}
-                />
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
                 Guardando...
               </>
+            ) : evaluacionEditando ? (
+              "Actualizar"
             ) : (
               "Guardar"
             )}

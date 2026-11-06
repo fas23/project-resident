@@ -27,6 +27,21 @@ export async function createEvaluacion(evaluacion) {
   return data;
 }
 
+export async function updateEvaluacion(id, evaluacion) {
+  const { data, error } = await supabase
+    .from("evaluaciones")
+    .update(evaluacion)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function deleteEvaluacion(id) {
   const { error } = await supabase.from("evaluaciones").delete().eq("id", id);
 
